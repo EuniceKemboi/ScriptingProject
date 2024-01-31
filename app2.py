@@ -16,7 +16,7 @@ def update_local_repository_and_return_number_of_upgradable_packages(package_man
         for line in output.split('\n'):
             if "packages can be upgraded" in line:
                 no_of_packages_to_update=line.split(' ')[0]
-                print(no_of_packages_to_update + " -> no of packeges to update")
+                print(no_of_packages_to_update + " -> Number of packages to update:")
 
                 return no_of_packages_to_update
             # if line.startswith('Version:'):
