@@ -4,27 +4,20 @@ from email.mime.multipart import MIMEMultipart
 
 sender_email = "mweieunice@gmail.com"
 sender_password = "zinl shep vsgm mbbz"
+recipient_emails = ["mweieunice943@gmail.com", "jetmorgan.jm@gmail.com"]
 
-def send_email(recipient_email, subject, message_content):
+def send_email(subject, message_content):
     msg = MIMEMultipart()
     msg['From'] = sender_email
-    msg['To'] = recipient_email
+    msg['To'] = ', '.join(recipient_emails)
     msg['Subject'] = subject
 
     msg.attach(MIMEText(message_content, 'html'))
     with smtplib.SMTP('smtp.gmail.com', 587) as server:
         server.starttls()
         server.login(sender_email, sender_password)
-        server.sendmail(sender_email, recipient_email, msg.as_string())
-    print(f"Email sent successfully to {recipient_email}!")
-
-# Replace these with your own details
-
-recipient_email = "mweieunice943@gmail.com"
-subject = "Test"
-#message = "My first working Code."
-
-#send_email( recipient_email, subject, message)
+        server.sendmail(sender_email, recipient_emails, msg.as_string())
+    print(f"Email sent successfully to {recipient_emails}!")
 
 
 def get_html_message(content):

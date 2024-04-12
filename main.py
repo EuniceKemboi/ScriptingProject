@@ -5,6 +5,7 @@ import time
 import threading
 import email_service
 import socket
+import sysmonitor
 
 
 
@@ -12,9 +13,8 @@ scheduler = sched.scheduler(time.time, time.sleep)
 
 def schedule_task(interval, task):
     scheduler.enter(interval, 1, schedule_task, (interval, task))
-    task()  # Execute the task
+    task() 
     threading.Thread(target=scheduler.run).start()
-
 
 
 def get_processes_info():
@@ -28,11 +28,7 @@ def get_processes_info():
         try:
             process_info = process.info
             if process_info['name'].split('/')[0] not in whitelisted_processes:
-                 
-                
-
-
-                 
+                   
                 trow=f"""<tr>
                     <td>{process_info['pid']}</td>
                     <td>{process_info['name']}</td>
@@ -41,14 +37,6 @@ def get_processes_info():
                 </tr>"""
                 print(trow)
                 trows=trows+trow
-        
-
-                
-
-
-
-
-
                 
             processes_info.append(process_info)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
@@ -71,18 +59,17 @@ def get_processes_info():
                 <tr>
                     <td>Jane Smith</td>
                     <td>jane@example.com</td>
-                </tr>
+                </tr>`
             </tbody>
         </table>
         </div>"""
 
-        email_service.send_email('edwynkemboy@gmail.com','TEST',email_service.get_html_message(content))
-
+        email_service.send_email('TEST',email_service.get_html_message(content))
 
     return processes_info
 
 def main():
-    
+    sysmonitor.main()
     processes_info = get_processes_info()
     print('Total running processes :'+str(len(processes_info)))
         
@@ -92,7 +79,7 @@ def start_monitoring_service():
     print('*******************************************************')
     print(' ')
     print('Enter 1 to start monitoring')
-    print('Enter 2 to start monitoring in backround')
+    print('Enter 2 to start monitoring in background')
     print('Enter 3 to add/remove process from whitelist')
     user_input = input_value()
     while user_input not in ['1','2','3']:
@@ -114,15 +101,15 @@ def start_monitoring_service():
         whitelisted_processes_arr=read_file('whitelist.txt').split('\n')
 
 
-        if command_arr[0]=='add':
+        if command_arr[0] == 'add':
             if process_name not in whitelisted_processes_arr:
                 write_to_txt(process_name,'whitelist.txt')
                 print('Process '+process_name+ ' whitelisted')
             else:
                 print('Process '+process_name+ ' already whitelisted')
-        elif command_arr[0]=='ls':
+        elif command_arr[0] == 'ls':
             for process in whitelisted_processes_arr:
-                print(p)
+                print(process)
         else:
             if process_name not in whitelisted_processes_arr:
                 print('Process '+process_name+ ' not whitelisted')
@@ -134,8 +121,6 @@ def start_monitoring_service():
                 print('Process '+process_name+ ' unwhitelisted')
             
             
-    
-
     if(user_input=='1'):
         schedule_task(5, main)
 
