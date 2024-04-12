@@ -1,5 +1,6 @@
 import psutil
 import datetime
+import math
 
 import email_service
 
@@ -17,8 +18,8 @@ def collect_metrics():
 # Function to generate report
 def generate_report(cpu_percent, mem_percent, disk_percent, network_traffic):
     timestamp = datetime.datetime.now().strftime('%d-%m-%Y %H:%M:%S')
-    network_traffic_sent = network_traffic[0] / 1024
-    network_traffic_received = network_traffic[1] /1024
+    network_traffic_sent = f"{math.ceil(network_traffic[0] / 1024):,}"
+    network_traffic_received = f"{math.ceil(network_traffic[1] / 1024):,}"
     report = f"Performance Report - {timestamp}\n"
     report += f"CPU Usage: {cpu_percent}%\n"
     report += f"Memory Usage: {mem_percent}%\n"

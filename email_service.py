@@ -20,7 +20,7 @@ def send_email(subject, message_content):
     print(f"Email sent successfully to {recipient_emails}!")
 
 
-def get_html_message(content):
+def get_base_html(content):
     
     return """
 <!DOCTYPE html>

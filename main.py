@@ -13,65 +13,26 @@ scheduler = sched.scheduler(time.time, time.sleep)
 
 def schedule_task(interval, task):
     scheduler.enter(interval, 1, schedule_task, (interval, task))
-    task() 
+    task() # Execute the task
     threading.Thread(target=scheduler.run).start()
 
 
 def get_processes_info():
-    processes_info = []
+    sysmonitor.main()
+    all_processes_info = []
+    unwhitelisted_processes=[]
     whitelisted_processes=read_file('whitelist.txt').split('\n')
-
-    trows=''
     
-
     for process in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
         try:
+            all_processes_info.append(process.info)
             process_info = process.info
             if process_info['name'].split('/')[0] not in whitelisted_processes:
-                   
-                trow=f"""<tr>
-                    <td>{process_info['pid']}</td>
-                    <td>{process_info['name']}</td>
-                    <td>{process_info['cpu_percent']}</td>
-                    <td>{process_info['memory_percent']}</td>
-                </tr>"""
-                print(trow)
-                trows=trows+trow
-                
-            processes_info.append(process_info)
+                unwhitelisted_processes.append(process_info)
         except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
-
-        print(trows)
-        content=f"""<div class="container">
-        <h1>UnWhitelisted processes running on server {get_server_ip()}</h1>
-        <table>
-            <thead>
-                <tr>
-                    <th>PID</th>
-                    <th>Process Name</th>
-                    <th>CPU usage</th>
-                    <th>MEM usage</th>
-                </tr>
-            </thead>
-            <tbody>
-                """+trows+"""
-                <tr>
-                    <td>Jane Smith</td>
-                    <td>jane@example.com</td>
-                </tr>`
-            </tbody>
-        </table>
-        </div>"""
-
-        email_service.send_email('TEST',email_service.get_html_message(content))
-
-    return processes_info
-
-def main():
-    sysmonitor.main()
-    processes_info = get_processes_info()
-    print('Total running processes :'+str(len(processes_info)))
+    email_service.send_email('Alert! UnWhitelisted process', build_email_body(unwhitelisted_processes))
+    print('Total running processes :'+str(len(all_processes_info)))
         
 def start_monitoring_service():
     print('*******************************************************')
@@ -79,24 +40,25 @@ def start_monitoring_service():
     print('*******************************************************')
     print(' ')
     print('Enter 1 to start monitoring')
-    print('Enter 2 to start monitoring in background')
-    print('Enter 3 to add/remove process from whitelist')
+    print('Enter 2 to add/remove process from whitelist')
     user_input = input_value()
-    while user_input not in ['1','2','3']:
+    while user_input not in ['1','2']:
         print("Invalid input")
         input_value()
         
-    if(user_input=='3'):
+    if(user_input == '2'):
         output='use command "add <process_name>" to whitelist \nuse command "rm <process_name>" to unwhitelist\nuse command "ls -all" to show all whitelisted processes'
         print(output)
         command=input('Enter command:')
         command_arr=command.split(' ')
 
+        # input validation
         while len(command_arr)<2 or len(command_arr)>2 or command_arr[0] not in ['add','rm','ls']:
             print('Invalid command')
             command=input('Enter command:')
             command_arr=command.split(' ')
 
+        #variable Stores process name
         process_name=command_arr[1]
         whitelisted_processes_arr=read_file('whitelist.txt').split('\n')
 
@@ -122,7 +84,9 @@ def start_monitoring_service():
             
             
     if(user_input=='1'):
-        schedule_task(5, main)
+        #a function that uses pythons scheduler library to run a task /function at an interval
+        schedule_task(30, get_processes_info)
+
 
 def input_value():
     return input("Input: ")
@@ -152,16 +116,39 @@ def get_server_ip():
     ip_address = socket.gethostbyname(hostname)
     return ip_address
 
+def build_email_body(unwhitelisted_processes:list):
+    trows=''
+ 
+    for unwhitelisted_process in unwhitelisted_processes:
+        trow=f"""<tr>
+                    <td>{str(unwhitelisted_process['pid'])}</td>
+                    <td>{str(unwhitelisted_process['name'])}</td>
+                    <td>{str(round(unwhitelisted_process['cpu_percent'],2))}</td>
+                    <td>{str(round(unwhitelisted_process['memory_percent'],2))}</td>
+                </tr>"""
+        trows=trows+trow
+ 
+    html_div_table=f"""<div class="container">
+    <h1>UnWhitelisted processes running on server {get_server_ip()}</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>PID</th>
+ 
+                <th>Process Name</th>
+                <th>CPU usage(%)</th>
+                <th>MEM usage(%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {trows}
+        </tbody>
+    </table>
+    </div>"""
+ 
+    return email_service.get_base_html(html_div_table)
+ 
 if __name__ == "__main__":
-    #main()
     start_monitoring_service()
-
-
-
-    
-
-    
-
-# Schedule the task to run after 5 seconds
 
     
